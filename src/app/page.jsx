@@ -1,5 +1,6 @@
 "use client";
 import React from "react";
+import { useState, useEffect, useCallback } from "react";
 
 function MainComponent() {
   const [disks, setDisks] = useState(3);
