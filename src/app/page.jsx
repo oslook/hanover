@@ -14,7 +14,6 @@ function MainComponent() {
   const [history, setHistory] = useState([]);
   const [showHistory, setShowHistory] = useState(false);
   const [isAutoPlaying, setIsAutoPlaying] = useState(false);
-
   const initializeTowers = useCallback(() => {
     const initialTowers = [
       Array.from({ length: disks }, (_, i) => disks - i),
@@ -29,7 +28,6 @@ function MainComponent() {
     setGameTime(0);
     setIsAutoPlaying(false);
   }, [disks]);
-
   const autoMove = useCallback((n, source, auxiliary, target) => {
     if (n === 1) {
       return [[source, target]];
@@ -40,7 +38,6 @@ function MainComponent() {
       ...autoMove(n - 1, auxiliary, source, target),
     ];
   }, []);
-
   const startAutoPlay = useCallback(() => {
     if (isAutoPlaying) return;
     setIsAutoPlaying(true);
@@ -187,6 +184,21 @@ function MainComponent() {
             <div className="text-[#60a5fa] font-roboto">用时: {gameTime}秒</div>
           </div>
 
+          {gameStarted && (
+            <div className="text-center mb-6">
+              <div className="text-[#60a5fa] font-roboto mb-2">
+                游戏规则: 将所有圆盘按从小到大的顺序移动到最右边的柱子
+              </div>
+              <div className="text-[#60a5fa] font-roboto">
+                {selectedTower === null ? (
+                  <p>👆 点击任意柱子来选择要移动的圆盘</p>
+                ) : (
+                  <p>👉 选择一个目标柱子来放置圆盘</p>
+                )}
+              </div>
+            </div>
+          )}
+
           {showHistory ? (
             <div className="bg-[#374151] rounded-lg p-4 mb-6 max-h-[300px] overflow-auto">
               <h2 className="text-[#60a5fa] font-roboto text-xl mb-4">
@@ -218,29 +230,39 @@ function MainComponent() {
                 <div
                   key={index}
                   onClick={() => handleTowerClick(index)}
-                  className={`relative w-[100px] md:w-[150px] cursor-pointer ${
-                    selectedTower === index ? "bg-[#374151]/50 rounded-lg" : ""
+                  className={`relative w-[100px] md:w-[150px] cursor-pointer h-full flex items-end justify-center transition-all duration-300 rounded-lg ${
+                    selectedTower === index
+                      ? "bg-[#374151] shadow-[0_0_30px_rgba(96,165,250,0.5)]"
+                      : "hover:bg-[#374151]/30"
                   }`}
                 >
                   <div className="absolute bottom-0 left-1/2 w-4 h-[200px] md:h-[300px] bg-[#64748b] transform -translate-x-1/2 rounded-t-lg" />
                   <div className="absolute bottom-0 left-1/2 w-[120px] md:w-[180px] h-4 bg-[#64748b] transform -translate-x-1/2 rounded-lg" />
-                  {tower.map((disk, diskIndex) => (
-                    <div
-                      key={diskIndex}
-                      className="absolute bottom-0 transition-all duration-200"
-                      style={{
-                        width: `${(disk * 80) / disks}%`,
-                        height: "20px",
-                        backgroundColor: `hsl(${disk * 40}, 80%, 60%)`,
-                        left: "50%",
-                        transform: `translateX(-50%) translateY(-${
-                          (diskIndex + 1) * 24
-                        }px)`,
-                        borderRadius: "8px",
-                        boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
-                      }}
-                    />
-                  ))}
+                  {tower.map((disk, diskIndex) => {
+                    const isTopDisk = diskIndex === tower.length - 1;
+                    const isSelectedTowerTopDisk =
+                      selectedTower === index && isTopDisk;
+                    return (
+                      <div
+                        key={diskIndex}
+                        className={`absolute bottom-0 transition-all duration-300`}
+                        style={{
+                          width: `${(disk * 80) / disks}%`,
+                          height: "20px",
+                          backgroundColor: `hsl(${disk * 40}, 80%, 60%)`,
+                          left: "50%",
+                          transform: `translateX(-50%) translateY(-${(diskIndex + 1) * 24}px)`,
+                          borderRadius: "8px",
+                          filter: isSelectedTowerTopDisk
+                            ? "brightness(1.4) drop-shadow(0 0 15px rgba(96,165,250,0.8))"
+                            : "brightness(1)",
+                          boxShadow: isSelectedTowerTopDisk
+                            ? "0 0 20px rgba(96,165,250,0.6)"
+                            : "0 2px 4px rgba(0,0,0,0.2)",
+                        }}
+                      />
+                    );
+                  })}
                 </div>
               ))}
             </div>
@@ -259,6 +281,27 @@ function MainComponent() {
           </div>
         )}
       </div>
+      <style jsx global>{`
+        @keyframes glow {
+          0% { box-shadow: 0 0 20px rgba(96,165,250,0.4); }
+          50% { box-shadow: 0 0 35px rgba(96,165,250,0.7); }
+          100% { box-shadow: 0 0 20px rgba(96,165,250,0.4); }
+        }
+        @keyframes diskGlow {
+          0% { 
+            filter: brightness(1.3) drop-shadow(0 0 12px rgba(96,165,250,0.6));
+            transform: scale(1.02);
+          }
+          50% { 
+            filter: brightness(1.5) drop-shadow(0 0 18px rgba(96,165,250,0.9));
+            transform: scale(1.05);
+          }
+          100% { 
+            filter: brightness(1.3) drop-shadow(0 0 12px rgba(96,165,250,0.6));
+            transform: scale(1.02);
+          }
+        }
+      `}</style>
     </div>
   );
 }
